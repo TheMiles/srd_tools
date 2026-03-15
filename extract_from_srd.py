@@ -1,6 +1,23 @@
 #!/usr/bin/env python3
 
 import sys,os,argparse
+import subprocess
+
+
+
+def parse_page( page, file ):
+
+    p = str( page )
+
+    r = subprocess.run(
+        ["pdftotext", "-layout", "-f", p, "-l", p, file, "-"],
+        capture_output=True,
+        text=True,
+        check=True
+    )
+
+    r = r.stdout.split('\n')
+    return r
 
 
 def main():
@@ -8,6 +25,10 @@ def main():
     global args
 
     print( F"Mein file ist {args.input[0]}")
+
+    r = parse_page( args.first, args.input[0] )
+    for l in r:
+        print( l )
 
 
 if __name__ == '__main__':
