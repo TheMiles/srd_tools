@@ -4,11 +4,7 @@ import sys,os,argparse
 import subprocess
 import re
 
-SPELL_HEADER_PATTERN = re.compile(    
-    r'((\w+)zauber\s+(\d)\.\s+Grades'   # z.B. "Beschwörungszauber 1. Grades"
-    r'|Zaubertrick\s+der\s+(\w+))',     # z.B. "Zaubertrick der Verwandlung"
-    re.IGNORECASE
-)
+
 
 def findColumnGap( page ):
 
@@ -76,10 +72,17 @@ def parse_page( page, file ):
 
 def splitSpells( document ):
 
+
+    spell_header_pattern = re.compile(    
+        r'((\w+)zauber\s+(\d)\.\s+Grades'   # z.B. "Beschwörungszauber 1. Grades"
+        r'|Zaubertrick\s+der\s+(\w+))',     # z.B. "Zaubertrick der Verwandlung"
+        re.IGNORECASE
+    )
+
     spell_start_indices = [
         i - 1
         for i, l in enumerate( document )
-        if SPELL_HEADER_PATTERN.search( l ) and i > 0
+        if spell_header_pattern.search( l ) and i > 0
     ]
 
     spells = [
@@ -90,12 +93,66 @@ def splitSpells( document ):
 
     return spells
 
+
+def splitType( spell ):
+
+    s = " ".join(spell)
+
+    spell_pattern = re.compile(    
+        r'(\w+)zauber\s+(\d)\.\s+Grades\s+\(([^)]+)\).*',   # z.B. "Beschwörungszauber 1. Grades"
+        re.IGNORECASE
+    )
+
+    cantripspell_pattern = re.compile(    
+        r'Zaubertrick\s+der\s+(\w+)\s+\((.+)\)',     # z.B. "Zaubertrick der Verwandlung"
+        re.IGNORECASE
+    )
+
+    spell_match = spell_pattern.search( s )
+    cantrip_match = cantripspell_pattern.search( s )
+
+    assert( (spell_match and not cantrip_match) or (not spell_match and cantrip_match) )
+
+    if spell_match:
+        school  = spell_match.group( 1 )
+        level   = spell_match.group( 2 )
+        classes = spell_match.group( 3 )
+
+    if cantrip_match:
+
+        school  = cantrip_match.group( 1 )
+        level   = 0
+        classes = cantrip_match.group( 2 )
+
+    classes = [ c.strip() for c in classes.split( ",") ]
+
+    school_conversion = {
+        "Bann" :          "Bann",
+        "Beschwörung" :   "Beschwörung",
+        "Beschwörungs" :  "Beschwörung",
+        "Erkenntnis" :    "Erkenntnis",
+        "Hervorrufung" :  "Hervorrufung",
+        "Hervorrufungs" : "Hervorrufung",
+        "Illusion" :      "Illusion",
+        "Illusions" :     "Illusion",
+        "Nekromantie" :   "Nekromantie",
+        "Verwandlung" :   "Verwandlung",
+        "Verwandlungs" :  "Verwandlung",
+        "Verzauberung" :  "Verzauberung",
+        "Verzauberungs" : "Verzauberung"
+    }
+
+    school = school_conversion[ school ]
+
+    return level, school, classes
+
+
 def convertSpell( spell_text ):
 
     spell = {}
 
-    spell["Titel"] = spell_text[0]
-
+    spell["title"] = spell_text[0]
+    spell["level"], spell["school"], spell["classes"] = splitType( spell_text[1:5] )
 
     return spell
 
@@ -113,7 +170,7 @@ def main():
 
     for s in spells:
 
-        print( s )
+        print( s["school"] )
 
 if __name__ == '__main__':
     try:
