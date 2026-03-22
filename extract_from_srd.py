@@ -188,6 +188,27 @@ def splitComponents( spell ):
     return components, components_details
 
 
+def splitDuration( spell ):
+
+    duration_pattern = re.compile(
+        r'Wirkungsdauer:\s*(Konzentration,)?\s*(.+)$',
+        re.IGNORECASE
+    )
+
+    for s in spell:
+        duration_match = duration_pattern.match( s )
+        if duration_match: break
+
+    assert( duration_match )
+
+    g = duration_match.groups()
+
+    duration      = g[1]
+    concentration = bool( g[0] )
+
+    return duration, concentration
+
+
 def convertSpell( spell_text ):
 
     spell = {}
@@ -197,6 +218,7 @@ def convertSpell( spell_text ):
     spell["castingTime"], spell["ritual"] = splitCastingTime( spell_text[2:8] ) 
     spell["range"] = splitRange( spell_text[3:9] )
     spell["components"], spell["componentsDetails"] = splitComponents( spell_text[4:10] )
+    spell["duration"], spell["concentration"] = splitDuration( spell_text )
     return spell
 
 
@@ -213,7 +235,7 @@ def main():
 
     for s in spells:
 
-        print( s["title"], s["components"], s["componentsDetails"] )
+        print( s["title"], s["duration"], s["concentration"] )
 
 if __name__ == '__main__':
     try:
