@@ -3,6 +3,7 @@
 import sys,os,argparse
 import subprocess
 import re
+import json
 
 
 
@@ -76,9 +77,6 @@ def cleanSpecialChars( line ):
         '\u2011': '-',
         '\u2013': '-',
         '\u2212': '-',
-        '\u201c': '"',
-        '\u201e': '"',
-        '\u2022': '*',
     }
 
     for c, r in replacements.items():
@@ -261,9 +259,7 @@ def main():
     document = [ cleanSpecialChars( l ) for l in document if len( l ) > 0 ]
     spells   = [ convertSpell( s ) for s in splitSpells( document ) ]
 
-    for s in spells:
-
-        print( s["title"], s["text"] )
+    json.dump( spells, args.output, ensure_ascii=False, indent=4 )
 
 
 if __name__ == '__main__':
@@ -271,7 +267,7 @@ if __name__ == '__main__':
         parser = argparse.ArgumentParser(description='Convert 5.5e SRD 2025 spells')
         parser.add_argument('-f', '--first', type=int, default=122, help='first page')
         parser.add_argument('-l', '--last', type=int, default=202, help='last page')
-        parser.add_argument('-o', '--output', type=argparse.FileType('w'), default=sys.stdout, help='Output file (default: stdout)')
+        parser.add_argument('-o', '--output', type=argparse.FileType('w', encoding='utf-8'), default=sys.stdout, help='Output file (default: stdout)')
         parser.add_argument('input', nargs=1, help='Input srd pdf')
         args = parser.parse_args()
         main()
