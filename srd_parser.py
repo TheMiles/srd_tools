@@ -209,6 +209,15 @@ def splitDuration( spell ):
     return duration, concentration
 
 
+def splitText( spell ):
+
+    for i in range( len( spell ) ):
+        if "Wirkungsdauer:" in spell[i]:
+            break
+
+    return spell[ i+1: ]
+
+
 def convertSpell( spell_text ):
 
     spell = {}
@@ -219,6 +228,8 @@ def convertSpell( spell_text ):
     spell["range"] = splitRange( spell_text[3:9] )
     spell["components"], spell["componentsDetails"] = splitComponents( spell_text[4:10] )
     spell["duration"], spell["concentration"] = splitDuration( spell_text )
+    spell["text"] = splitText( spell_text )
+
     return spell
 
 
@@ -235,7 +246,7 @@ def main():
 
     for s in spells:
 
-        print( s["title"], s["duration"], s["concentration"] )
+        print( s["title"], s["text"] )
 
 if __name__ == '__main__':
     try:
