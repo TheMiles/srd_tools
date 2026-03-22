@@ -94,22 +94,19 @@ def splitSpells( document ):
     return spells
 
 
+def reHelper( text, regex ):
+
+    t = " ".join( text )
+    p = re.compile( regex, re.IGNORECASE )
+    m = p.search( t )
+
+    return m
+
+
 def splitType( spell ):
 
-    s = " ".join(spell)
-
-    spell_pattern = re.compile(    
-        r'(\w+)zauber\s+(\d)\.\s+Grades\s+\(([^)]+)\).*',   # z.B. "Beschwörungszauber 1. Grades"
-        re.IGNORECASE
-    )
-
-    cantripspell_pattern = re.compile(    
-        r'Zaubertrick\s+der\s+(\w+)\s+\((.+)\)',     # z.B. "Zaubertrick der Verwandlung"
-        re.IGNORECASE
-    )
-
-    spell_match = spell_pattern.search( s )
-    cantrip_match = cantripspell_pattern.search( s )
+    spell_match   = reHelper( spell, r'(\w+)zauber\s+(\d)\.\s+Grades\s+\(([^)]+)\).*' )
+    cantrip_match = reHelper( spell, r'Zaubertrick\s+der\s+(\w+)\s+\((.+)\)' )
 
     assert( (spell_match and not cantrip_match) or (not spell_match and cantrip_match) )
 
@@ -150,14 +147,7 @@ def splitType( spell ):
 
 def splitCastingTime( spell ):
 
-    s = " ".join(spell)
-
-    casting_time_pattern = re.compile(    
-        r'Zeitaufwand:\s*(.+?)( oder Ritual)?\s*Reichweite:',
-        re.IGNORECASE
-    )
-
-    casting_time_match = casting_time_pattern.search( s )
+    casting_time_match = reHelper( spell, r'Zeitaufwand:\s*(.+?)( oder Ritual)?\s*Reichweite:' )
 
     assert( casting_time_match )
 
@@ -169,19 +159,33 @@ def splitCastingTime( spell ):
     return casting_time, ritual
 
 
-def splitRange( spell_text ):
+def splitRange( spell ):
 
-    s = " ".join( spell_text )
-
-    range_pattern = re.compile( r'Reichweite:\s+(.+)\s+Komponenten:' )
-
-    range_match = range_pattern.search( s )
+    range_match = reHelper( spell, r'Reichweite:\s+(.+)\s+Komponenten:' )
 
     assert( range_match )
 
     range = range_match.group( 1 )
 
     return range 
+
+
+def splitComponents( spell ):
+
+    components_match = reHelper( spell, r'Komponenten:\s*(V)?,?\s*(G|S)?,?\s*(M)?\s*(\([^)]+\))?\s*Wirkungsdauer:' )
+
+    assert( components_match )
+
+    g = components_match.groups()
+
+    components = []
+    if g[0]: components.append( 'V' )
+    if g[1]: components.append( 'G' )
+    if g[2]: components.append( 'M' )
+
+    components_details = g[3][1:-1] if g[3] else None
+
+    return components, components_details
 
 
 def convertSpell( spell_text ):
@@ -192,7 +196,7 @@ def convertSpell( spell_text ):
     spell["level"], spell["school"], spell["classes"] = splitType( spell_text[1:5] )
     spell["castingTime"], spell["ritual"] = splitCastingTime( spell_text[2:8] ) 
     spell["range"] = splitRange( spell_text[3:9] )
-
+    spell["components"], spell["componentsDetails"] = splitComponents( spell_text[4:10] )
     return spell
 
 
@@ -209,7 +213,7 @@ def main():
 
     for s in spells:
 
-        print( s["title"], s["range"] )
+        print( s["title"], s["components"], s["componentsDetails"] )
 
 if __name__ == '__main__':
     try:
