@@ -2,6 +2,7 @@
 
 import sys,os,argparse
 import subprocess
+import re
 
 def findColumnGap( page ):
 
@@ -67,19 +68,42 @@ def parse_page( page, file ):
     return r
 
 
+def splitSpells( document ):
+
+    spell_header_pattern = re.compile(    
+        r'(\w+zauber\s+\d+\.\s+Grades'   # z.B. "Beschwörungszauber 1. Grades"
+        r'|Zaubertrick\s+der\s+\w+)',     # z.B. "Zaubertrick der Verwandlung"
+        re.IGNORECASE
+    )
+
+    spell_start_indices = [
+        i - 1
+        for i, l in enumerate( document )
+        if spell_header_pattern.search( l ) and i > 0
+    ]
+
+    spells = [
+        document[ spell_start_indices[i]:idx ]
+        for i, idx in enumerate( spell_start_indices[1:] )
+    ]
+    spells.append( document[ spell_start_indices[-1]:] )
+
+    return spells
+
+
 def main():
 
     global args
 
     pages = [ parse_page( x, args.input[0] ) for x in range( args.first, args.last + 1 ) ]
     pages = [ decolumnize( p ) for p in pages ]
+    document = [ l.strip() for p in pages for l in p ]
+    document = [ l for l in document if len( l ) > 0 ]
+    spells   = splitSpells( document )
 
-    for p in pages:
+    for s in spells:
+        print( s[0] )
 
-        for l in p:
-            print( l )
-
-            
 
 if __name__ == '__main__':
     try:
