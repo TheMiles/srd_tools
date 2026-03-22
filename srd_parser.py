@@ -244,6 +244,7 @@ def convertSpell( spell_text ):
     spell["components"], spell["componentsDetails"] = splitComponents( spell_text[4:10] )
     spell["duration"], spell["concentration"] = splitDuration( spell_text )
     spell["text"] = splitText( spell_text )
+    spell["source"] = args.source
 
     return spell
 
@@ -268,6 +269,7 @@ if __name__ == '__main__':
         parser.add_argument('-f', '--first', type=int, default=122, help='first page')
         parser.add_argument('-l', '--last', type=int, default=202, help='last page')
         parser.add_argument('-o', '--output', type=argparse.FileType('w', encoding='utf-8'), default=sys.stdout, help='Output file (default: stdout)')
+        parser.add_argument('-s', '--source', default='SRD5.2.1', help='Source reference')
         parser.add_argument('input', nargs=1, help='Input srd pdf')
         args = parser.parse_args()
         main()
