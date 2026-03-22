@@ -70,6 +70,23 @@ def parse_page( page, file ):
     return r
 
 
+def cleanSpecialChars( line ):
+    replacements = {
+        '\xad':   '',
+        '\u2011': '-',
+        '\u2013': '-',
+        '\u2212': '-',
+        '\u201c': '"',
+        '\u201e': '"',
+        '\u2022': '*',
+    }
+
+    for c, r in replacements.items():
+        line = line.replace( c, r )
+
+    return line
+
+
 def splitSpells( document ):
 
 
@@ -241,12 +258,13 @@ def main():
     pages = [ parse_page( x, args.input[0] ) for x in range( args.first, args.last + 1 ) ]
     pages = [ decolumnize( p ) for p in pages ]
     document = [ l.strip() for p in pages for l in p ]
-    document = [ l for l in document if len( l ) > 0 ]
+    document = [ cleanSpecialChars( l ) for l in document if len( l ) > 0 ]
     spells   = [ convertSpell( s ) for s in splitSpells( document ) ]
 
     for s in spells:
 
         print( s["title"], s["text"] )
+
 
 if __name__ == '__main__':
     try:
