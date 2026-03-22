@@ -1,14 +1,12 @@
 # SRD parser
 
-**THIS IS NOT READY YET**
-
 `srd_parser` is a python script which helps converting some information
 from the [System Reference Document v5.2.1](https://www.dndbeyond.com/srd)
 for the 5.5e of the "greatest tabletop roleplaying game".
 
 The script currently works only on the german edition of the SRD.
 
-It converts all the spells to a json format
+It converts all the spells to json
 
 
 
