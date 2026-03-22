@@ -4,6 +4,12 @@ import sys,os,argparse
 import subprocess
 import re
 
+SPELL_HEADER_PATTERN = re.compile(    
+    r'((\w+)zauber\s+(\d)\.\s+Grades'   # z.B. "Beschwörungszauber 1. Grades"
+    r'|Zaubertrick\s+der\s+(\w+))',     # z.B. "Zaubertrick der Verwandlung"
+    re.IGNORECASE
+)
+
 def findColumnGap( page ):
 
     for divider in range(55, 70):
@@ -70,16 +76,10 @@ def parse_page( page, file ):
 
 def splitSpells( document ):
 
-    spell_header_pattern = re.compile(    
-        r'(\w+zauber\s+\d+\.\s+Grades'   # z.B. "Beschwörungszauber 1. Grades"
-        r'|Zaubertrick\s+der\s+\w+)',     # z.B. "Zaubertrick der Verwandlung"
-        re.IGNORECASE
-    )
-
     spell_start_indices = [
         i - 1
         for i, l in enumerate( document )
-        if spell_header_pattern.search( l ) and i > 0
+        if SPELL_HEADER_PATTERN.search( l ) and i > 0
     ]
 
     spells = [
@@ -90,6 +90,16 @@ def splitSpells( document ):
 
     return spells
 
+def convertSpell( spell_text ):
+
+    spell = {}
+
+    spell["Titel"] = spell_text[0]
+
+
+    return spell
+
+
 
 def main():
 
@@ -99,11 +109,11 @@ def main():
     pages = [ decolumnize( p ) for p in pages ]
     document = [ l.strip() for p in pages for l in p ]
     document = [ l for l in document if len( l ) > 0 ]
-    spells   = splitSpells( document )
+    spells   = [ convertSpell( s ) for s in splitSpells( document ) ]
 
     for s in spells:
-        print( s[0] )
 
+        print( s )
 
 if __name__ == '__main__':
     try:
