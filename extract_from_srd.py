@@ -147,12 +147,36 @@ def splitType( spell ):
     return level, school, classes
 
 
+
+def splitCastingTime( spell ):
+
+    s = " ".join(spell)
+
+    casting_time_pattern = re.compile(    
+        r'Zeitaufwand:\s*(.+?)( oder Ritual)?\s*Reichweite:',
+        re.IGNORECASE
+    )
+
+    casting_time_match = casting_time_pattern.search( s )
+
+    assert( casting_time_match )
+
+    g = casting_time_match.groups()
+
+    casting_time = g[0]
+    ritual       = bool(g[1])
+
+    return casting_time, ritual
+
+
+
 def convertSpell( spell_text ):
 
     spell = {}
 
     spell["title"] = spell_text[0]
     spell["level"], spell["school"], spell["classes"] = splitType( spell_text[1:5] )
+    spell["castingTime"], spell["ritual"] = splitCastingTime( spell_text[2:8] ) 
 
     return spell
 
@@ -170,7 +194,7 @@ def main():
 
     for s in spells:
 
-        print( s["school"] )
+        print( s["title"], s["castingTime"], s["ritual"] )
 
 if __name__ == '__main__':
     try:
